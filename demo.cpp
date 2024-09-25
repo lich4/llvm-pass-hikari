@@ -3,12 +3,10 @@
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
 #include "llvm/Support/raw_ostream.h"
-#if LLVM_VERSION_MAJOR < 16
+#if LLVM_VERSION_MAJOR <= 15
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #endif
 using namespace llvm;
-
-#include <iostream>
 
 #define PASSNAME          "MyPassDemo"
 
@@ -18,14 +16,14 @@ public:
     static char ID;
     MyPassDemoLegacy() : FunctionPass(ID) {}
     virtual bool runOnFunction(Function& F) override {
-        errs() << "LegacyPass: I saw a function called " << F.getName() << "!\n";
+        errs() << "MyPassDemoLegacy\n";
         return false;
     }
 };
 char MyPassDemoLegacy::ID = 0;
-#if LLVM_VERSION_MAJOR < 16
+#if LLVM_VERSION_MAJOR <= 15
 static RegisterStandardPasses RegisterMyPass(PassManagerBuilder::EP_EarlyAsPossible, 
-    [](const PassManagerBuilder &, legacy:assManagerBase &M) {
+    [](const PassManagerBuilder &, legacy::PassManagerBase &PM) {
         PM.add(new MyPassDemoLegacy());
     }
 );
@@ -35,9 +33,14 @@ static RegisterPass<MyPassDemoLegacy> RegisterMyPass(PASSNAME, PASSNAME, false, 
 // ---------------- Legacy Pass ---------------- //
 
 // ---------------- New Pass ---------------- //
+#if LLVM_VERSION_MAJOR <= 13
+#define OptimizationLevel PassBuilder::OptimizationLevel
+#endif
+
 class MyPassDemo : public PassInfoMixin<MyPassDemo> {
 public:
     PreservedAnalyses run(Module &M, ModuleAnalysisManager &AM) {
+        errs() << "MyPassDemo\n";
         return PreservedAnalyses::all();
     };
     static bool isRequired() { return true; }
@@ -50,11 +53,11 @@ extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo llvmGetPassPluginIn
         .PluginVersion = "1.0",
         .RegisterPassBuilderCallbacks = [](PassBuilder &PB) {
             PB.registerPipelineStartEPCallback(
-#if LLVM_VERSION_MAJOR < 14
-                [](ModulePassManager &MPM, PassBuilder::OptimizationLevel Level) {
-#else
-                [](ModulePassManager &MPM, OptimizationLevel Level) {
+                [](ModulePassManager &MPM
+#if LLVM_VERSION_MAJOR >= 12
+                , OptimizationLevel Level
 #endif
+                ) {
                     MPM.addPass(MyPassDemo());
             });
             PB.registerPipelineParsingCallback(
