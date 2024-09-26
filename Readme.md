@@ -45,13 +45,14 @@ llvm15/build/bin/clang -isysroot `xcrun --sdk macosx --show-sdk-path` -fpass-plu
 
 ```bash
 # for LLVM all versions
-llvm??/build/bin/clang -S -emit-llvm -isysroot `xcrun --sdk macosx --show-sdk-path` -o /tmp/test.ll /tmp/test.bc
+llvm8/build/bin/clang -emit-llvm -c -isysroot `xcrun --sdk macosx --show-sdk-path` -o /tmp/test.bc /tmp/test.cpp
+llvm8/build/bin/opt -load-pass-plugin build/MyPassDemo8.dylib -passes all -S -o /tmp/test_new.bc /tmp/test.bc
 ```
 
 NOTICE: opt support ll as input from LLVM15  
 
 ```bash
-llvm15/build/bin/clang -S -emit-llvm -isysroot `xcrun --sdk macosx --show-sdk-path` -o /tmp/test.ll /tmp/test.cpp
+llvm15/build/bin/clang -emit-llvm -S -isysroot `xcrun --sdk macosx --show-sdk-path` -o /tmp/test.ll /tmp/test.cpp
 llvm15/build/bin/opt -load-pass-plugin build/MyPassDemo15.dylib -passes all -S -o /tmp/test_new.ll /tmp/test.ll 
 ```
 
@@ -62,6 +63,7 @@ llvm15/build/bin/opt -load-pass-plugin build/MyPassDemo15.dylib -passes all -S -
 * c/cpp -> obj `clang -c`
 * ll/bc -> obj/asm `llc`
 * bc/obj -> bin `lld`
+* ll/bc -> ll `opt -S` (ll -> ll in LLVM>=15)
 * ll/bc -> bc `opt` (ll -> bc in LLVM>=15)
 * ll -> bc `llvm-as`
 * bc -> ll `llvm-dis`
