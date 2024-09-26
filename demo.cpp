@@ -11,25 +11,23 @@ using namespace llvm;
 #define PASSNAME          "MyPassDemo"
 
 // ---------------- Legacy Pass ---------------- //
-class MyPassDemoLegacy : public FunctionPass {
+#if LLVM_VERSION_MAJOR <= 14
+class MyPassDemoLegacy : public ModulePass {
 public:
     static char ID;
-    MyPassDemoLegacy() : FunctionPass(ID) {}
-    virtual bool runOnFunction(Function& F) override {
+    MyPassDemoLegacy() : ModulePass(ID) {}
+    virtual bool runOnModule(Module& M) override {
         errs() << "MyPassDemoLegacy\n";
         return false;
     }
 };
 char MyPassDemoLegacy::ID = 0;
-#if LLVM_VERSION_MAJOR <= 15
 static RegisterStandardPasses RegisterMyPass(PassManagerBuilder::EP_EarlyAsPossible, 
     [](const PassManagerBuilder &, legacy::PassManagerBase &PM) {
         PM.add(new MyPassDemoLegacy());
     }
 );
-#else
-static RegisterPass<MyPassDemoLegacy> RegisterMyPass(PASSNAME, PASSNAME, false, false);
-#endif
+#endif // LLVM_VERSION_MAJOR <= 14
 // ---------------- Legacy Pass ---------------- //
 
 // ---------------- New Pass ---------------- //

@@ -29,9 +29,9 @@ Test environment:   MacOS 13.x
 llvm12/build/bin/clang -isysroot `xcrun --sdk macosx --show-sdk-path` -Xclang -load -Xclang build/MyPassDemo12.dylib /tmp/1.cpp
 # for LLVM<=12      Legacy Pass (Equal to above)
 llvm12/build/bin/clang -isysroot `xcrun --sdk macosx --show-sdk-path` -fplugin=build/MyPassDemo12.dylib /tmp/1.cpp
-# for LLVM=9/10/11 New Pass (O3 required)
+# for LLVM=9/10/11  New Pass (O3 required)
 llvm11/build/bin/clang -isysroot `xcrun --sdk macosx --show-sdk-path` -fexperimental-new-pass-manager -fpass-plugin=build/MyPassDemo11.dylib /tmp/1.cpp -O3
-# for LLVM=12      New Pass
+# for LLVM=12       New Pass
 llvm12/build/bin/clang -isysroot `xcrun --sdk macosx --show-sdk-path` -fexperimental-new-pass-manager -fpass-plugin=build/MyPassDemo12.dylib /tmp/1.cpp
 # for LLVM=13/14    Legacy Pass
 llvm13/build/bin/clang -isysroot `xcrun --sdk macosx --show-sdk-path` -flegacy-pass-manager -fplugin=build/MyPassDemo13.dylib /tmp/1.cpp
@@ -43,9 +43,27 @@ llvm15/build/bin/clang -isysroot `xcrun --sdk macosx --show-sdk-path` -fpass-plu
 
 ### Test with opt
 
-NOTICE: opt support ll as input from LLVM15 
+```bash
+# for LLVM all versions
+llvm??/build/bin/clang -S -emit-llvm -isysroot `xcrun --sdk macosx --show-sdk-path` -o /tmp/test.ll /tmp/test.bc
+```
+
+NOTICE: opt support ll as input from LLVM15  
+
 ```bash
 llvm15/build/bin/clang -S -emit-llvm -isysroot `xcrun --sdk macosx --show-sdk-path` -o /tmp/test.ll /tmp/test.cpp
 llvm15/build/bin/opt -load-pass-plugin build/MyPassDemo15.dylib -passes all -S -o /tmp/test_new.ll /tmp/test.ll 
 ```
+
+### compile
+
+* c/cpp -> bc `clang -emit-llvm -c`
+* c/cpp -> ll `clang -emit-llvm -S`
+* c/cpp -> obj `clang -c`
+* ll/bc -> obj/asm `llc`
+* bc/obj -> bin `lld`
+* ll/bc -> bc `opt` (ll -> bc in LLVM>=15)
+* ll -> bc `llvm-as`
+* bc -> ll `llvm-dis`
+* c/cpp/obj/asm -> bin `clang`
 
